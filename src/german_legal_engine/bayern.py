@@ -61,8 +61,11 @@ class BayernLegalClient:
         limit: maximum number of results
         court: optional filter e.g. 'AG München', 'OLG München'
         """
-        self._init_session()
-        
+        try:
+            self._init_session()
+        except Exception as e:
+            return [{"error": f"Failed to initialize Bavarian court session: {e}"}]
+            
         def _execute_search(tok: str) -> List[Dict[str, Any]]:
             payload = urllib.parse.urlencode({
                 "__RequestVerificationToken": tok,
