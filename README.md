@@ -60,7 +60,7 @@ german-legal-engine/
 
 ```bash
 # Repository klonen und im Editable-Modus installieren
-git clone https://github.com/leolegal/german-legal-engine.git
+git clone https://github.com/rzgrw/german-legal-engine.git
 cd german-legal-engine
 pip install -e .
 ```
