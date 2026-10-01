@@ -150,6 +150,17 @@ Die Engine stellt einen standardkonformen MCP-Server bereit, der sich nahtlos in
 
 ---
 
+## ⚖️ Rechtlicher Rahmen & Compliance (§ 5 UrhG & DSGVO)
+
+Die German Legal Engine wurde unter strikter Beachtung des deutschen Urheber- und Datenschutzrechts konzipiert:
+
+1. **Amtliche Werke gem. § 5 Abs. 1 UrhG:** Die Engine ruft ausschließlich Gesetze, Verordnungen und gerichtliche Entscheidungen aus amtlichen Bundes- und Landesquellen ab. Diese genießen als amtliche Werke keinen urheberrechtlichen Schutz.
+2. **Keine proprietären Normen oder Literatur:** Das Framework verzichtet bewusst auf die Einbindung privater DIN/ISO-Normen (Ausschluss des § 5 Abs. 3 UrhG) oder urheberrechtlich geschützter Sekundärliteratur.
+3. **Schutz von Datenbankrechten (§§ 87a, 87b UrhG):** Kein massenhaftes systematisches Scraping oder unautorisiertes Spiegeln fremder Datenbanken. Die Abfragen erfolgen on-demand als punktuelle Referenzrecherchen mit direkter Quellenverlinkung (*Source Provenance*).
+4. **Datenschutz durch lokale Ausführung (DSGVO):** Die Engine läuft als lokale Open-Source-Runtime on-premise auf dem Rechner des Nutzers. Es existiert kein zentraler Server, der Mandantendaten, IP-Adressen oder vertrauliche Suchanfragen speichert oder verarbeitet.
+
+---
+
 ## 🏛️ Qualitätssicherung & Tests
 
 Das Testset prüft die exakte Einhaltung der gesetzlichen Fristenlogik und Bereinigungsregeln:
