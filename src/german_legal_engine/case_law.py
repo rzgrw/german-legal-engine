@@ -9,6 +9,7 @@ Zero external Node/NPM dependencies.
 import re
 import urllib.request
 import urllib.parse
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -95,7 +96,10 @@ def search_federal_decisions(
             "title": sanitize_zero_dashes(summary_val or first_text),
             "citation": citation,
             "jurisdiction": "BUND",
-            "source_url": f"{RII_BASE_URL}?doc.id={doc_id}"
+            "source_name": "Bundesministerium der Justiz (Rechtsprechung im Internet)",
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "source_url": f"{RII_BASE_URL}?doc.id={doc_id}",
+            "is_search_snippet": True
         })
         
         if len(results) >= limit:
@@ -128,7 +132,11 @@ def get_federal_decision(doc_id: str) -> Dict[str, Any]:
         "doc_id": doc_id,
         "url": url,
         "jurisdiction": "BUND",
-        "text": sanitize_zero_dashes(raw_text)
+        "source_name": "Bundesministerium der Justiz (Rechtsprechung im Internet)",
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "is_official_verbatim": True,
+        "text": sanitize_zero_dashes(raw_text),
+        "legal_notice": "Amtliches Werk gem. § 5 Abs. 1 UrhG."
     }
 
 

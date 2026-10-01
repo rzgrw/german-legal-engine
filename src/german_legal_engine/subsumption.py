@@ -256,34 +256,35 @@ def analyze_subsumption(law: str, section: str) -> Dict[str, Any]:
     """
     Returns the structured subsumption model for a given norm,
     including individual elements of proof, factual requirements, and burden of proof.
+    Clearly marks analytical blueprints as editorial work aids, not official statutory text.
     """
     sec_clean = section.replace('§', '').replace('Abs.', '').strip().replace(' ', '_')
     key = f"{law.upper()}_{sec_clean}"
     
-    # Direct match
-    if key in STATUTORY_BLUEPRINTS:
+    def _wrap_blueprint(bp: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "success": True,
-            "blueprint": STATUTORY_BLUEPRINTS[key]
+            "is_official_verbatim": False,
+            "nature": "Strukturierte juristische Arbeitshilfe / Tatsachen- und Beweislastgraph (kein amtlicher Normtext)",
+            "blueprint": bp
         }
+    
+    # Direct match
+    if key in STATUTORY_BLUEPRINTS:
+        return _wrap_blueprint(STATUTORY_BLUEPRINTS[key])
         
     # Match without paragraph suffix or with prefix match
     base_sec = sec_clean.split('_')[0]
     base_key = f"{law.upper()}_{base_sec}"
     if base_key in STATUTORY_BLUEPRINTS:
-        return {
-            "success": True,
-            "blueprint": STATUTORY_BLUEPRINTS[base_key]
-        }
+        return _wrap_blueprint(STATUTORY_BLUEPRINTS[base_key])
         
     for k, v in STATUTORY_BLUEPRINTS.items():
         if k.startswith(f"{base_key}_"):
-            return {
-                "success": True,
-                "blueprint": v
-            }
+            return _wrap_blueprint(v)
         
     return {
         "success": False,
+        "is_official_verbatim": False,
         "message": f"Kein vordefinierter Subsumptions-Graph für {law} § {section} vorhanden. Bitte Gesetzestext via get_norm analysieren."
     }

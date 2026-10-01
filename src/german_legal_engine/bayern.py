@@ -9,6 +9,7 @@ import re
 import urllib.request
 import urllib.parse
 import http.cookiejar
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -134,7 +135,10 @@ class BayernLegalClient:
                     "snippet": sanitize_zero_dashes(snippet),
                     "citation": citation,
                     "jurisdiction": "BY",
-                    "source_url": f"{BASE_URL}/Content/Document/{doc_id}"
+                    "source_name": "Bayerische Staatskanzlei (gesetze-bayern.de)",
+                    "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                    "source_url": f"{BASE_URL}/Content/Document/{doc_id}",
+                    "is_search_snippet": True
                 })
                 
                 if len(results) >= limit:
@@ -220,9 +224,13 @@ class BayernLegalClient:
             "doc_id": clean_id,
             "url": url,
             "jurisdiction": "BY",
+            "source_name": "Bayerische Staatskanzlei (gesetze-bayern.de)",
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "is_official_verbatim": True,
             "leitsaetze": [sanitize_zero_dashes(l) for l in leitsaetze],
             "normenketten": normenketten,
-            "text": sanitize_zero_dashes(full_text)
+            "text": sanitize_zero_dashes(full_text),
+            "legal_notice": "Amtliches Werk gem. § 5 Abs. 1 UrhG. Redaktionelle Leitsätze sind als solche ausgewiesen."
         }
 
 

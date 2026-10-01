@@ -59,6 +59,11 @@ def get_subsumption_blueprint(law: str, section: str) -> str:
     res = LegalEngine.get_subsumption_blueprint(law, section)
     return json.dumps(res, ensure_ascii=False, indent=2)
 
+@server.tool(description="Redact sensitive personal data (PII: IBAN, email, phone, addresses, tax IDs) in legal briefs or court decisions under GDPR/DSGVO Art. 5 principles.")
+def anonymize_text(text: str) -> str:
+    """Anonymize PII in legal text. text: legal document or brief string."""
+    return LegalEngine.anonymize_text(text)
+
 @server.tool(description="Prepare an executive, citation-grounded legal context dossier for drafting court pleadings or legal briefs without hallucinations or dashes.")
 def prepare_pleading_dossier(norms: List[List[str]], query: str) -> str:
     """Prepare legal dossier. norms: list of [law, section] pairs e.g. [['BGB', '823'], ['BGB', '249']]. query: case law search query."""

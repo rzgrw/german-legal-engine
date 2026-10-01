@@ -1,6 +1,6 @@
 import unittest
 from german_legal_engine.subsumption import analyze_subsumption
-from german_legal_engine.sanitizer import sanitize_zero_dashes, format_court_citation
+from german_legal_engine.sanitizer import sanitize_zero_dashes, format_court_citation, anonymize_legal_text
 
 class TestSubsumption(unittest.TestCase):
     def test_subsumption_bgb_823(self):
@@ -46,6 +46,15 @@ class TestSubsumption(unittest.TestCase):
     def test_court_citation_formatting(self):
         cit = format_court_citation("Bundesgerichtshof", "15.03.2023", "VIII ZR 125/22")
         self.assertEqual(cit, "BGH, Entscheidung vom 15.03.2023, Az. VIII ZR 125/22")
+
+    def test_anonymize_pii(self):
+        raw = "Bitte überweisen an DE89370400440532013000 oder kontaktieren Sie info@anwalt.de unter +49 89 1234567 in der Leopoldstraße 10, 80802 München."
+        clean = anonymize_legal_text(raw)
+        self.assertIn("[IBAN REDACTED]", clean)
+        self.assertIn("[E-MAIL REDACTED]", clean)
+        self.assertIn("[TELEFON REDACTED]", clean)
+        self.assertNotIn("DE89370400440532013000", clean)
+        self.assertNotIn("info@anwalt.de", clean)
 
 if __name__ == "__main__":
     unittest.main()

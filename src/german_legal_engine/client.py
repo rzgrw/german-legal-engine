@@ -10,7 +10,7 @@ from .norms import fetch_statute_norm
 from .case_law import search_case_law, get_decision_text
 from .deadlines import calculate_deadline
 from .subsumption import analyze_subsumption
-from .sanitizer import sanitize_zero_dashes
+from .sanitizer import sanitize_zero_dashes, anonymize_legal_text
 
 class LegalEngine:
     """
@@ -51,6 +51,11 @@ class LegalEngine:
     def get_subsumption_blueprint(law: str, section: str) -> Dict[str, Any]:
         """Retrieve structured legal elements and burden of proof."""
         return analyze_subsumption(law, section)
+        
+    @staticmethod
+    def anonymize_text(text: str) -> str:
+        """Redact sensitive PII (IBAN, email, phone, addresses) under DSGVO Art. 5."""
+        return anonymize_legal_text(text)
         
     @classmethod
     def prepare_dossier_context(cls, norms: List[Tuple[str, str]], query: str) -> str:

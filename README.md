@@ -143,21 +143,24 @@ Die Engine stellt einen standardkonformen MCP-Server bereit, der sich nahtlos in
 
 #### Bereitgestellte MCP-Tools:
 * `get_norm(law, section)`: Liefert den amtlichen Volltext der gesuchten Rechtsnorm (Bund und Länder).
-* `search_precedents(query, limit, court)`: Durchsucht die amtliche Datenbank *Rechtsprechung im Internet* (BGH, BAG, BVerfG).
-* `compute_deadline(ereignis_datum, dauer_wert, dauer_einheit, state)`: Mathematisch exakte Fristenberechnung gem. §§ 187–193 BGB mit Feiertagskontrolle.
-* `get_subsumption_blueprint(law, section)`: Liefert strukturierte Tatbestandsmerkmale mit zugehöriger Darlegungs- und Beweislast.
+* `search_precedents(query, limit, court, source)`: Durchsucht amtliche Entscheidungen von Bundesgerichten (BGH, BAG, BVerfG) und bayerischen Gerichten (gesetze-bayern.de).
+* `get_decision(doc_id)`: Ruft die amtliche Volltext-Entscheidung mit Randnummern ab.
+* `compute_deadline(ereignis_datum, dauer_wert, dauer_einheit, state)`: Mathematisch exakte Fristenberechnung gem. §§ 187-193 BGB mit Feiertagskontrolle aller 16 Bundesländer.
+* `get_subsumption_blueprint(law, section)`: Liefert strukturierte Tatbestandsmerkmale mit zugehöriger Darlegungs- und Beweislast (Arbeitshilfe, kein amtlicher Text).
+* `anonymize_text(text)`: Schwärzt sensible personenbezogene Daten (IBAN, E-Mail, Telefon, Anschriften) gem. Art. 5 DSGVO.
 * `prepare_pleading_dossier(norms, query)`: Erzeugt einen fertigen, zitatgesicherten Rechercheblock für Klageschriften und Schriftsätze.
 
 ---
 
 ## ⚖️ Rechtlicher Rahmen & Compliance (§ 5 UrhG & DSGVO)
 
-Die German Legal Engine wurde unter strikter Beachtung des deutschen Urheber- und Datenschutzrechts konzipiert:
+Die German Legal Engine wurde unter strikter Beachtung des deutschen Urheber- und Datenschutzrechts konzipiert. Ausführliche Leitlinien finden sich in [COMPLIANCE.md](COMPLIANCE.md):
 
 1. **Amtliche Werke gem. § 5 Abs. 1 UrhG:** Die Engine ruft ausschließlich Gesetze, Verordnungen und gerichtliche Entscheidungen aus amtlichen Bundes- und Landesquellen ab. Diese genießen als amtliche Werke keinen urheberrechtlichen Schutz.
-2. **Keine proprietären Normen oder Literatur:** Das Framework verzichtet bewusst auf die Einbindung privater DIN/ISO-Normen (Ausschluss des § 5 Abs. 3 UrhG) oder urheberrechtlich geschützter Sekundärliteratur.
-3. **Schutz von Datenbankrechten (§§ 87a, 87b UrhG):** Kein massenhaftes systematisches Scraping oder unautorisiertes Spiegeln fremder Datenbanken. Die Abfragen erfolgen on-demand als punktuelle Referenzrecherchen mit direkter Quellenverlinkung (*Source Provenance*).
+2. **Ausschluss privater Normen (§ 5 Abs. 3 UrhG):** Das Framework verzichtet bewusst auf die Einbindung privater DIN/ISO-Normen oder urheberrechtlich geschützter Fachliteratur.
+3. **Schutz von Datenbankrechten (§§ 87a, 87b UrhG) & § 44b UrhG:** Kein massenhaftes systematisches Scraping oder unautorisiertes Spiegeln fremder Datenbanken. Die Abfragen erfolgen rein punktuell on-demand mit vollständiger Quellenintegrität und Zeitstempel (*Source Provenance*).
 4. **Datenschutz durch lokale Ausführung (DSGVO):** Die Engine läuft als lokale Open-Source-Runtime on-premise auf dem Rechner des Nutzers. Es existiert kein zentraler Server, der Mandantendaten, IP-Adressen oder vertrauliche Suchanfragen speichert oder verarbeitet.
+5. **Integrierte PII-Redaktion:** Schnelle Schwärzung von Mandanten- und Kontodaten über `anonymize_text` vor der Weitergabe an LLM-Schnittstellen.
 
 ---
 

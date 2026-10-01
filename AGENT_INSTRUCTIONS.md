@@ -51,9 +51,9 @@ Erfolgreich implementierte Basis-Graphen:
 * [x] Entscheidungsabruf für AG München, LG München I und II, OLG München, BayObLG, BayVerfGH etc. inklusive Leitsätzen, Tenor, Tatbestand und `[Rn. X]`.
 * [x] Vollständige Entkopplung von `case_law.py` von externen Node-Paketen.
 
-### Priorität 3: Lokaler SQLite-Cache & Offline-Modus
-Rechtsanwälte arbeiten häufig unterwegs im Zug oder benötigen Latenzen im Sub-Millisekundenbereich.  
-**Aufgabe:** Integration eines lokalen Caches (`~/.cache/german_legal_engine/cache.db`) mit einer Time-to-Live (TTL) von 30 Tagen für abgerufene Paragrafen und Suchanfragen.
+### Priorität 3: Flüchtiger Sitzungs-Cache (Session-Scoped Transient Cache gem. § 44b UrhG)
+Um die Schutzrechte der Datenbankhersteller (§§ 87a, 87b UrhG) und Schrankenbestimmungen des § 44b UrhG strikt einzuhalten, erfolgt kein persistentes, unautorisiertes Offline-Spiegeln von Gerichtsentscheidungen oder Paragrafen.  
+**Aufgabe:** Implementierung eines flüchtigen In-Memory-/Sitzungs-Caches mit automatischer Löschung nach Vorgangsabschluss, um redundante Abrufe innerhalb desselben Bearbeitungskontexts zu vermeiden und Latenzen zu minimieren.
 
 ### Priorität 4: Gesetzlicher RVG-Gebührenrechner (§ 13 RVG / VV RVG)
 Erstellung eines Moduls `rvg.py` zur exakten Berechnung der Rechtsanwaltsgebühren nach Gegenstandswert:

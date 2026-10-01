@@ -7,6 +7,7 @@ Directly accesses official repositories (gesetze-im-internet.de) without halluci
 import re
 import urllib.request
 import urllib.parse
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from bs4 import BeautifulSoup
 
@@ -146,6 +147,10 @@ def fetch_statute_norm(law: str, section: str) -> Dict[str, Any]:
         "section": sec_clean,
         "title": title_text,
         "source_url": final_url,
+        "source_name": "Bundesministerium der Justiz / BfJ (gesetze-im-internet.de)",
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "is_official_verbatim": True,
         "content_raw": full_text,
-        "content_clean": sanitize_zero_dashes(full_text)
+        "content_clean": sanitize_zero_dashes(full_text),
+        "legal_notice": "Amtliches Werk gem. § 5 Abs. 1 UrhG. Zur verbindlichen Fassung ist das Bundesgesetzblatt (BGBl.) heranzuziehen."
     }
