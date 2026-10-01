@@ -1,12 +1,12 @@
 # German Legal Engine (GLE) ⚖️
 
 > **Souveräne juristische Recherche-, Subsumtions- und Fristen-Engine für autonome KI-Agenten**  
-> *Offizielle Open-Source-Distribution von Agentiqa & Kanzlei LeoLegal Core Team*
+> *Souveräne Open-Source-Distribution von Agentiqa*
 
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Spezifikation 1.0](https://img.shields.io/badge/MCP-1.0-purple.svg)](https://modelcontextprotocol.io/)
-[![Zero Dashes](https://img.shields.io/badge/Stil-Zero--Dashes-green.svg)](https://leolegal.de)
+[![Zero Dashes](https://img.shields.io/badge/Stil-Zero--Dashes-green.svg)](https://github.com/rzgrw/german-legal-engine)
 
 ---
 
@@ -38,14 +38,17 @@ german-legal-engine/
 │       ├── client.py          # Einheitliches Python-SDK (LegalEngine)
 │       ├── server.py          # FastMCP-Server (stdio und sse) für Claude Desktop, Cursor etc.
 │       ├── norms.py           # Autarker Normen-Parser für gesetze-im-internet.de
-│       ├── case_law.py        # Rechtsprechungs-Client für BGH, BAG, BVerfG
+│       ├── case_law.py        # Rechtsprechungs-Client für BGH, BAG, BVerfG (100% Python)
+│       ├── bayern.py          # Nativer Scraper für bayerische Gerichte (gesetze-bayern.de)
 │       ├── subsumption.py     # Subsumtions-Blueprints (Merkmale & Beweislast)
 │       ├── deadlines.py       # Exakte Fristenmathematik gem. §§ 187-193 BGB
 │       ├── sanitizer.py       # Zero-Dashes Bereinigung & BGH-Zitierweise
 │       └── cli.py             # Komfortables Terminal-Tool (gle)
 ├── tests/
 │   ├── test_deadlines.py      # BGB-Fristen- und Feiertagstests
-│   └── test_subsumption.py    # Subsumtions- und Bereinigungstests
+│   ├── test_subsumption.py    # Subsumtions- und Bereinigungstests
+│   ├── test_case_law.py       # Rechtsprechungs- und Bayern-Tests
+│   └── test_norms.py          # Gesetzesabruf- und Slug-Tests
 └── examples/
     ├── 01_statutory_lookup.py # Gesetzesabruf in der Praxis
     ├── 02_case_law_research.py # Recherche von Leitentscheidungen
@@ -72,19 +75,22 @@ pip install -e .
 Das mitgelieferte CLI-Werkzeug `gle` ermöglicht die sofortige Abfrage direkt im Terminal:
 
 ```bash
-# 1. Gesetzestext wortlautgetreu abrufen (z. B. § 823 BGB)
+# 1. Gesetzestext wortlautgetreu abrufen (z. B. § 823 BGB, § 81 AufenthG)
 gle norm BGB 823
 
-# 2. Höchstrichterliche Rechtsprechung durchsuchen (z. B. BGH zur Mietkaution)
-gle search "Mietkaution Rückzahlung" --limit 3
+# 2. Rechtsprechung durchsuchen (Bundesgerichte + bayerische Gerichte)
+gle search "Mietkaution Rückzahlung" --limit 3 --source ALL
 
-# 3. Prozessuale Notfrist berechnen (§§ 187-193 BGB)
+# 3. Volltext einer Entscheidung abrufen
+gle decision Y-300-Z-BECKRS-B-2021-N-30750
+
+# 4. Prozessuale Notfrist berechnen (§§ 187-193 BGB)
 # Kündigungszugang am 03.10.2026 + 1 Woche Frist in Bayern (BY):
 # Fällt regulär auf Samstag, den 10.10. -> automatische Verschiebung auf Montag, den 12.10.2026!
 gle deadline 2026-10-03 1 wochen --state BY
 
-# 4. Tatbestandsmerkmale und Beweislast analysieren
-gle subsume BGB 823
+# 5. Tatbestandsmerkmale und Beweislast analysieren
+gle subsume BGB 280
 ```
 
 ---
@@ -158,4 +164,4 @@ python3 -m unittest discover tests
 ## 📄 Lizenz
 
 Dieses Projekt steht unter der freien **MIT-Lizenz**.  
-Copyright (c) 2026 Agentiqa & Kanzlei LeoLegal Core Team.
+Copyright (c) 2026 Agentiqa Core Team.

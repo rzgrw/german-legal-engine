@@ -2,6 +2,7 @@
 server.py
 Model Context Protocol (MCP) Server for the German Legal Engine.
 Compatible with Claude Desktop, Claude Code, Cursor, OpenCode, and Hermes Agent.
+100% Pure Python - Zero Node/NPM dependencies.
 """
 
 import sys
@@ -14,16 +15,27 @@ from .client import LegalEngine
 
 server = MCPServer("German Legal Engine", version="1.0.0")
 
-@server.tool(description="Retrieve official, verbatim German federal or state statutory law (BGB, ZPO, KSchG, StGB, RVG, etc.) directly from official government repositories.")
+@server.tool(description="Retrieve official, verbatim German federal or state statutory law (BGB, ZPO, KSchG, StGB, RVG, AufenthG, etc.) directly from official government repositories.")
 def get_norm(law: str, section: str) -> str:
-    """Retrieve authentic statutory text. law: e.g. 'BGB', 'ZPO', 'KSchG'. section: e.g. '823', '253', '1'."""
+    """Retrieve authentic statutory text. law: e.g. 'BGB', 'ZPO', 'KSchG', 'AufenthG'. section: e.g. '823', '253', '1', '81'."""
     res = LegalEngine.get_norm(law, section)
     return json.dumps(res, ensure_ascii=False, indent=2)
 
-@server.tool(description="Search authentic German federal court case law (BGH, BAG, BVerfG, BVerwG, BFH) via Rechtsprechung im Internet with official citations.")
-def search_precedents(query: str, limit: int = 5, court: Optional[str] = None) -> str:
-    """Search federal case law. query: legal keywords (e.g. 'Mietkaution Rückzahlung'). court: optional filter e.g. 'BGH', 'BAG'."""
-    res = LegalEngine.search_precedents(query, limit=limit, court=court)
+@server.tool(description="Search authentic German court case law: federal courts (BGH, BAG, BVerfG, BVerwG, BFH) via Rechtsprechung im Internet and Bavarian courts (AG/LG/OLG München) via gesetze-bayern.de.")
+def search_precedents(
+    query: str,
+    limit: int = 5,
+    court: Optional[str] = None,
+    source: str = "ALL"
+) -> str:
+    """Search court case law. query: legal keywords. court: optional court filter. source: 'ALL', 'BUND' (federal), or 'BY' (Bavaria)."""
+    res = LegalEngine.search_precedents(query, limit=limit, court=court, source=source)
+    return json.dumps(res, ensure_ascii=False, indent=2)
+
+@server.tool(description="Retrieve the authentic full text and Randnummern of a court decision by document ID.")
+def get_decision(doc_id: str) -> str:
+    """Retrieve decision text. doc_id: e.g. 'jb-KORE...' or 'Y-300-Z-BECKRS-B-...'."""
+    res = LegalEngine.get_decision(doc_id)
     return json.dumps(res, ensure_ascii=False, indent=2)
 
 @server.tool(description="Calculate German procedural deadlines under §§ 187-193 BGB and ZPO with weekend and statutory holiday shifting across all 16 German states.")
@@ -33,7 +45,7 @@ def compute_deadline(
     dauer_einheit: str = "wochen",
     state: str = "BY"
 ) -> str:
-    """Compute procedural deadline. ereignis_datum: 'YYYY-MM-DD'. dauer_wert: int. dauer_einheit: 'tage', 'wochen', 'monate'. state: German state code (e.g. 'BY', 'NW', 'BE')."""
+    """Compute procedural deadline. ereignis_datum: 'YYYY-MM-DD'. dauer_wert: int. dauer_einheit: 'tage', 'wochen', 'monate', 'jahre'. state: German state code (e.g. 'BY', 'NW', 'BE')."""
     try:
         d = date.fromisoformat(ereignis_datum)
         res = LegalEngine.compute_deadline(d, dauer_wert, dauer_einheit, state)
@@ -43,7 +55,7 @@ def compute_deadline(
 
 @server.tool(description="Retrieve directed legal subsumption blueprints: Tatbestandsmerkmale, factual details, burden of proof (Beweislast), and statutory legal consequences.")
 def get_subsumption_blueprint(law: str, section: str) -> str:
-    """Retrieve structured legal elements. law: e.g. 'BGB', 'KSchG'. section: e.g. '823', '551', '1'."""
+    """Retrieve structured legal elements. law: e.g. 'BGB', 'KSchG', 'OWiG'. section: e.g. '823', '280', '314', '535', '551', '626', '1', '67'."""
     res = LegalEngine.get_subsumption_blueprint(law, section)
     return json.dumps(res, ensure_ascii=False, indent=2)
 
@@ -57,7 +69,7 @@ def prepare_pleading_dossier(norms: List[List[str]], query: str) -> str:
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="German Legal Engine MCP Server")
+    parser = argparse.ArgumentParser(description="German Legal Engine MCP Server (100% Pure Python)")
     parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8002)

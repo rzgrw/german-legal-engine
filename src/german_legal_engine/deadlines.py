@@ -5,6 +5,7 @@ Calculates Ereignisfristen, beginning, expiration, and weekend/holiday shifts
 across all 16 German Bundesländer (Feiertagsgesetze).
 """
 
+import calendar
 from datetime import date, timedelta
 from typing import Dict, Any, Optional, List
 
@@ -62,13 +63,21 @@ def get_public_holidays(year: int, state: str = "BY") -> Dict[date, str]:
     if state_upper in ["BW", "BY", "ST"]:
         holidays[date(year, 1, 6)] = "Heilige Drei Könige"
         
+    # Internationaler Frauentag (08.03): BE, MV
+    if state_upper in ["BE", "MV"]:
+        holidays[date(year, 3, 8)] = "Internationaler Frauentag"
+        
     # Fronleichnam (Easter + 60d): BW, BY, HE, NW, RP, SL
     if state_upper in ["BW", "BY", "HE", "NW", "RP", "SL"]:
         holidays[easter + timedelta(days=60)] = "Fronleichnam"
         
-    # Mariä Himmelfahrt (15.08): SL, BY (teilweise)
+    # Mariä Himmelfahrt (15.08): SL, BY (in Gemeinden mit überwiegend katholischer Bevölkerung)
     if state_upper in ["SL", "BY"]:
         holidays[date(year, 8, 15)] = "Mariä Himmelfahrt"
+        
+    # Weltkindertag (20.09): TH
+    if state_upper in ["TH"]:
+        holidays[date(year, 9, 20)] = "Weltkindertag"
         
     # Reformationstag (31.10): BB, HB, HH, MV, NI, SN, ST, SH, TH
     if state_upper in ["BB", "HB", "HH", "MV", "NI", "SN", "ST", "SH", "TH"]:
@@ -78,13 +87,22 @@ def get_public_holidays(year: int, state: str = "BY") -> Dict[date, str]:
     if state_upper in ["BW", "BY", "NW", "RP", "SL"]:
         holidays[date(year, 11, 1)] = "Allerheiligen"
         
+    # Buß- und Bettag (Mittwoch vor dem 23. November): SN
+    if state_upper in ["SN"]:
+        nov23 = date(year, 11, 23)
+        # Weekday: Monday is 0, Wednesday is 2
+        days_since_wed = (nov23.weekday() - 2) % 7
+        if days_since_wed == 0:
+            days_since_wed = 7
+        holidays[nov23 - timedelta(days=days_since_wed)] = "Buß- und Bettag"
+        
     return holidays
 
 
 def calculate_deadline(
     ereignis_datum: date,
     dauer_wert: int,
-    dauer_einheit: str = "wochen", # "tage", "wochen", "monate"
+    dauer_einheit: str = "wochen", # "tage", "wochen", "monate", "jahre"
     state: str = "BY"
 ) -> Dict[str, Any]:
     """
@@ -92,6 +110,7 @@ def calculate_deadline(
     - Ereignisfrist (§ 187 Abs. 1 BGB): Der Tag des Ereignisses zählt nicht mit.
     - Fristbeginn: Folgetag 00:00 Uhr.
     - Fristende (§ 188 Abs. 2 BGB): Ablauf mit dem Tag, der dem Ereignistag entspricht.
+    - Fehlt der entsprechende Tag (§ 188 Abs. 3 BGB): Ablauf mit dem letzten Tag des Monats.
     - Feiertagsverschiebung (§ 193 BGB): Fällt das Ende auf Samstag, Sonntag oder Feiertag,
       verschiebt es sich auf den nächsten Werktag.
     """
@@ -105,22 +124,29 @@ def calculate_deadline(
     elif unit in ["wochen", "woche", "weeks"]:
         regulaeres_ende = ereignis_datum + timedelta(weeks=dauer_wert)
     elif unit in ["monate", "monat", "months"]:
-        # Add months properly
-        year = ereignis_datum.year
-        month = ereignis_datum.month + dauer_wert
-        while month > 12:
-            year += 1
-            month -= 12
-        day = min(ereignis_datum.day, 28) # safe handling
-        regulaeres_ende = date(year, month, day)
+        # Calculation according to § 188 Abs. 2 and Abs. 3 BGB
+        total_months = (ereignis_datum.month - 1) + dauer_wert
+        target_year = ereignis_datum.year + (total_months // 12)
+        target_month = (total_months % 12) + 1
+        days_in_target_month = calendar.monthrange(target_year, target_month)[1]
+        
+        # § 188 Abs. 2 BGB: same day number as trigger event
+        # § 188 Abs. 3 BGB: if day doesn't exist, last day of the month
+        target_day = min(ereignis_datum.day, days_in_target_month)
+        regulaeres_ende = date(target_year, target_month, target_day)
+    elif unit in ["jahre", "jahr", "years"]:
+        target_year = ereignis_datum.year + dauer_wert
+        days_in_target_month = calendar.monthrange(target_year, ereignis_datum.month)[1]
+        target_day = min(ereignis_datum.day, days_in_target_month)
+        regulaeres_ende = date(target_year, ereignis_datum.month, target_day)
     else:
         raise ValueError(f"Unknown deadline unit: {dauer_einheit}")
         
     # 3. Check weekend and holiday shift (§ 193 BGB)
-    holidays = get_public_holidays(regulaeres_ende.year, state=state)
-    # Also add next year's holidays if close to year end
-    if regulaeres_ende.month == 12:
-        holidays.update(get_public_holidays(regulaeres_ende.year + 1, state=state))
+    # Ensure holidays are populated for all involved years
+    holidays = {}
+    for y in {regulaeres_ende.year, regulaeres_ende.year + 1}:
+        holidays.update(get_public_holidays(y, state=state))
         
     endgueltiges_ende = regulaeres_ende
     shift_reasons = []
@@ -135,6 +161,10 @@ def calculate_deadline(
             shift_reasons.append(f"{endgueltiges_ende.strftime('%d.%m.%Y')} ist Sonntag (§ 193 BGB)")
             endgueltiges_ende += timedelta(days=1) # skip to Monday
             continue
+            
+        # Ensure holidays for endgueltiges_ende.year are present
+        if endgueltiges_ende.year not in holidays:
+            holidays.update(get_public_holidays(endgueltiges_ende.year, state=state))
             
         # Check public holiday
         if endgueltiges_ende in holidays:

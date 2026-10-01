@@ -23,9 +23,14 @@ class LegalEngine:
         return fetch_statute_norm(law, section)
         
     @staticmethod
-    def search_precedents(query: str, limit: int = 5, court: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Search federal court decisions (BGH, BAG, BVerfG)."""
-        return search_case_law(query, limit=limit, court=court)
+    def search_precedents(
+        query: str,
+        limit: int = 5,
+        court: Optional[str] = None,
+        source: str = "ALL"
+    ) -> List[Dict[str, Any]]:
+        """Search federal and state court decisions (BGH, BAG, BVerfG, AG/LG/OLG München, etc.)."""
+        return search_case_law(query, limit=limit, court=court, source=source)
         
     @staticmethod
     def get_decision(doc_id: str) -> Dict[str, Any]:
@@ -53,7 +58,7 @@ class LegalEngine:
         Builds a comprehensive legal context block for LLM prompts,
         court pleadings, or legal briefs with strict zero-dashes compliance.
         """
-        lines = ["### Maßgebliche Rechtsnormen & BGH/BAG-Rechtsprechung (LeoLegal Ground Truth):\n"]
+        lines = ["### Maßgebliche Rechtsnormen & BGH/BAG-Rechtsprechung (German Legal Engine Ground Truth):\n"]
         for law, sec in norms:
             n_res = cls.get_norm(law, sec)
             if n_res.get("success"):
@@ -70,7 +75,7 @@ class LegalEngine:
                     lines.append(f"**Rechtsfolge:** {bp['rechtsfolge']}\n")
                     
         precedents = cls.search_precedents(query, limit=3)
-        if precedents and not "error" in precedents[0]:
+        if precedents and "error" not in precedents[0]:
             lines.append("#### Relevante Leitsatzentscheidungen:")
             for p in precedents:
                 lines.append(f"- **{p['citation']}**: {p['title']}")

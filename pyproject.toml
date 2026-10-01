@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
-    { name = "Agentiqa & LeoLegal Core Team" }
+    { name = "Agentiqa Core Team", email = "contact@agentiqa.com" }
 ]
 keywords = [
     "legal-tech",
@@ -47,6 +47,11 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0"
 ]
+
+[project.urls]
+Homepage = "https://github.com/rzgrw/german-legal-engine"
+Repository = "https://github.com/rzgrw/german-legal-engine.git"
+"Bug Tracker" = "https://github.com/rzgrw/german-legal-engine/issues"
 
 [project.scripts]
 gle = "german_legal_engine.cli:main"

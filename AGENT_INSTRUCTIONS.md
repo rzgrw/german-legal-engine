@@ -1,4 +1,4 @@
-# AGENT_INSTRUCTIONS.md — Technisches Übergabebriefing für KI-Entwickleragenten
+# AGENT_INSTRUCTIONS.md - Technisches Übergabebriefing für KI-Entwickleragenten
 
 > **Zielgruppe:** Autonome Coding-Agenten (Claude Code / OpenCode / Codex / Hermes).  
 > **Ziel:** Weiterentwicklung, Ausbau und Härtung der **German Legal Engine (GLE)** zum führenden Open-Source-MCP-Server für das deutsche Rechtssystem.
@@ -32,22 +32,24 @@ Im deutschen Zivil- und Prozessrecht (*BGB*, *ZPO*, *ArbGG*) führen halluzinier
 
 Folgende Aufgaben sind vom nachfolgenden Agenten prioritär zu bearbeiten:
 
-### Priorität 1: Ausbau der Subsumtions-Blueprints (`subsumption.py`)
-Aktuell sind Basis-Graphen hinterlegt für:
-* `§ 823 Abs. 1 BGB` (Unerlaubte Handlungen)
-* `§ 551 BGB` (Mietsicherheiten / Kaution)
-* `§ 1 KSchG` (Kündigungsschutz)
+### Priorität 1: Erweiterung der Subsumtions-Blueprints (`subsumption.py`)
+Erfolgreich implementierte Basis-Graphen:
+* [x] `§ 823 Abs. 1 BGB` (Unerlaubte Handlungen)
+* [x] `§ 280 Abs. 1 BGB` (Schadensersatz wegen Pflichtverletzung)
+* [x] `§ 314 BGB` (Kündigung von Dauerschuldverhältnissen aus wichtigem Grund)
+* [x] `§ 535 Abs. 1 Satz 2 BGB` (Mängelbeseitigung und Minderung im Mietrecht)
+* [x] `§ 551 BGB` (Mietsicherheiten / Kaution)
+* [x] `§ 626 BGB` (Außerordentliche fristlose Kündigung im Arbeitsrecht)
+* [x] `§ 1 KSchG` (Kündigungsschutz)
+* [x] `§ 67 OWiG` (Einspruch gegen den Bußgeldbescheid)
 
-**Aufgabe:** Hinzufügen strukturierter Blueprints für hochfrequente Streitgegenstände der anwaltlichen Praxis:
-1. `§ 280 Abs. 1 BGB` (Schadensersatz wegen Pflichtverletzung)
-2. `§ 314 BGB` (Kündigung von Dauerschuldverhältnissen aus wichtigem Grund)
-3. `§ 535 Abs. 1 Satz 2 BGB` (Mängelbeseitigung und Minderung im Mietrecht)
-4. `§ 626 BGB` (Außerordentliche fristlose Kündigung im Arbeitsrecht)
-5. `§ 67 OWiG` (Einspruch gegen den Bußgeldbescheid)
+**Nächste Erweiterungen:** Weitere spezifische Anspruchsgrundlagen (z. B. § 812 BGB Bereicherungsrecht, § 437 BGB kaufrechtliche Gewährleistung).
 
 ### Priorität 2: Eigener nativer Scraper für bayerische Gerichte (`gesetze-bayern.de`)
-Das externe Node-Paket `german-legal-mcp` schlägt bei Landesgerichten in Bayern (`source: BY`) regelmäßig fehl.  
-**Aufgabe:** Entwicklung eines autarken Python-Clients in `case_law.py`, der Entscheidungen der bayerischen Zivil- und Arbeitsgerichte (AG München, LG München I und II, ArbG München, OLG München) direkt und resilient von *gesetze-bayern.de* abruft.
+* [x] Vollständig autark in Python in `bayern.py` implementiert (ohne Node/NPM).
+* [x] Robuste Session-Verwaltung mit automatischer Token-Erneuerung (`__RequestVerificationToken`).
+* [x] Entscheidungsabruf für AG München, LG München I und II, OLG München, BayObLG, BayVerfGH etc. inklusive Leitsätzen, Tenor, Tatbestand und `[Rn. X]`.
+* [x] Vollständige Entkopplung von `case_law.py` von externen Node-Paketen.
 
 ### Priorität 3: Lokaler SQLite-Cache & Offline-Modus
 Rechtsanwälte arbeiten häufig unterwegs im Zug oder benötigen Latenzen im Sub-Millisekundenbereich.  
