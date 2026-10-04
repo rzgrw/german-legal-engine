@@ -46,6 +46,11 @@ def main():
     sub_p.add_argument("law", help="Law abbreviation (e.g. BGB, KSchG, OWiG)")
     sub_p.add_argument("section", help="Paragraph number (e.g. 823, 280, 314, 535, 551, 626, 1, 67)")
     
+    # triage
+    tr_p = subparsers.add_parser("triage", help="Triage incoming mandate with Laya System 1 decision model")
+    tr_p.add_argument("text", help="Mandate text or inquiry snippet")
+    tr_p.add_argument("--state", default="BY", help="German state code (default: BY)")
+    
     args = parser.parse_args()
     
     if args.command == "norm":
@@ -120,6 +125,24 @@ def main():
             print(f"\nRechtsfolge: {bp['rechtsfolge']}\n")
         else:
             print(res.get("message"))
+            
+    elif args.command == "triage":
+        res = LegalEngine.triage_mandate(args.text, state=args.state)
+        print(f"\n=== Laya System 1 Legal Triage ({res['jurisdiction_state']}) ===")
+        print(f"Rechtsgebiet:          {res['domain'].upper()} (Konfidenz: {res['domain_confidence']:.2f})")
+        print(f"Dringlichkeit-Score:   {res['urgency_score']:.1f} / 2.0")
+        print(f"Fristrisiko (P):       {res['deadline_risk_prob']:.2f}")
+        print(f"Anwaltliche Eilprüfung: {'ERFORDERLICH' if res['requires_escalation'] else 'Regulär'}")
+        if res.get("detected_event_dates"):
+            print(f"Erkannte Daten:        {', '.join(res['detected_event_dates'])}")
+        if res.get("suggested_statutory_norms"):
+            print("\nEmpfohlene Normen & Subsumtions-Graphen:")
+            for n in res["suggested_statutory_norms"]:
+                print(f"  * {n['norm']}: {n['title']} ({n['tatbestandsmerkmale_count']} Merkmale)")
+        raw = res.get("raw_triage", {})
+        if raw.get("notice"):
+            print(f"\nHinweis: {raw['notice']}")
+        print()
             
     else:
         parser.print_help()

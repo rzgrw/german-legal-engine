@@ -43,7 +43,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+laya = [
+    "laya>=0.3.0"
+]
 dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0"
+]
+all = [
+    "laya>=0.3.0",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0"
 ]

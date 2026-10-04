@@ -94,6 +94,9 @@ gle deadline 2026-10-03 1 wochen --state BY --audit
 
 # 5. Tatbestandsmerkmale und Beweislast analysieren
 gle subsume BGB 280
+
+# 6. Eingehende Mandate und Sachverhalte in ~20ms triagieren (Laya System 1 Integration)
+gle triage "Arbeitgeber hat mir gestern fristlos gekündigt, brauche Fristenprüfung" --state BY
 ```
 
 ---
@@ -150,6 +153,7 @@ Die Engine stellt einen standardkonformen MCP-Server bereit, der sich nahtlos in
 * `get_decision(doc_id)`: Ruft die amtliche Volltext-Entscheidung mit Randnummern ab.
 * `compute_deadline(ereignis_datum, dauer_wert, dauer_einheit, state)`: Mathematisch exakte Fristenberechnung gem. §§ 187-193 BGB mit Feiertagskontrolle aller 16 Bundesländer und lückenlosem gesetzlichem Audit-Trail.
 * `get_subsumption_blueprint(law, section)`: Liefert strukturierte Tatbestandsmerkmale mit zugehöriger Darlegungs- und Beweislast (Arbeitshilfe, kein amtlicher Text).
+* `triage_mandate(text, state)`: Klassifiziert und triagiert rechtliche Eingänge in ~20-30 ms über das nicht-generative [Laya](https://brainfunctioncollapse.com/laya) Modell (Rechtsgebiet, Dringlichkeits-Score, Fristablauf-Risiko) vollkommen lokal ohne Datenabfluss.
 * `anonymize_text(text)`: Schwärzt sensible personenbezogene Daten (IBAN, E-Mail, Telefon, Anschriften) gem. Art. 5 DSGVO.
 * `prepare_pleading_dossier(norms, query)`: Erzeugt einen fertigen, zitatgesicherten Rechercheblock für Klageschriften und Schriftsätze.
 
@@ -157,13 +161,16 @@ Die Engine stellt einen standardkonformen MCP-Server bereit, der sich nahtlos in
 
 ### 4. Dual-System-Architektur für Kanzleiprozesse (System 1 + System 2)
 
-In der anwaltlichen Praxis scheitern reine LLM-Lösungen oft daran, dass sie prozessuale Regeln und Fristen nur „statistisch erraten“. Die German Legal Engine realisiert ein praxiserprobtes hybrides **Dual-System-Pattern**:
+In der anwaltlichen Praxis scheitern reine generative LLM-Lösungen oft daran, dass sie prozessuale Regeln und Fristen nur „statistisch erraten“ und sensible Mandantendaten an Drittanbieter-Clouds übertragen. Die German Legal Engine realisiert ein praxiserprobtes hybrides **Dual-System-Pattern**:
 
-* **System 1 (LLM / Semantischer Agent):** Liest unstrukturierte Mandantenschreiben, Schriftsätze oder E-Mails, erkennt den Sachverhalt und formuliert Entwürfe.
-* **System 2 (German Legal Engine):** Agiert als deterministischer Ground-Truth-Layer. Berechnet Fristen mathematisch exakt, prüft authentische Normtexte, liefert zitierfähige Randnummern, liefert einen nachprüfbaren Audit-Trail und schwärzt PII lokal vor der Weitergabe (DSGVO Art. 5).
+* **System 1 (Nicht-generative Entscheidungsmodelle & LLMs):**  
+  Nutzt das Open-Source-Modell [Laya](https://brainfunctioncollapse.com/laya) für blitzschnelle (~20-30 ms) typisierte Entscheidungen direkt auf der Kanzlei-Hardware (Rechtsgebiets-Klassifikation, Dringlichkeits-Scoring, Erkennung akuter Notfristen) ohne jeglichen Datenabfluss. Für komplexe Begründungen formulieren LLM-Agenten Schriftsatzentwürfe auf Basis geprüfter Vorgaben.
+* **System 2 (German Legal Engine Ground Truth):**  
+  Agiert als unbestechlicher, deterministischer Regel- und Fakten-Layer. Berechnet Notfristen mathematisch exakt (§§ 187-193 BGB) mit transparentem Audit-Trail, ruft authentische Gesetze und Präzedenzfälle ab und schützt Mandantendaten lokal (Art. 5 DSGVO).
 
-Ein vollständiges, lauffähiges Beispiel für diesen Kanzlei-Workflow findet sich unter:  
-[`examples/04_dual_system_kanzlei_pipeline.py`](examples/04_dual_system_kanzlei_pipeline.py)
+Ausführliche, lauffähige Beispiele:
+* [`examples/04_dual_system_kanzlei_pipeline.py`](examples/04_dual_system_kanzlei_pipeline.py): Kanzlei-Workflow von der Mandatsaufnahme bis zum Fristenkontrollblatt.
+* [`examples/05_laya_system1_triage.py`](examples/05_laya_system1_triage.py): Blitzschnelle Eingangstriage mit Laya System 1 Entscheidungsmodellen.
 
 ---
 

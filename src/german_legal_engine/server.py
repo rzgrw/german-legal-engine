@@ -64,6 +64,12 @@ def anonymize_text(text: str) -> str:
     """Anonymize PII in legal text. text: legal document or brief string."""
     return LegalEngine.anonymize_text(text)
 
+@server.tool(description="Triage and classify an incoming legal mandate or inquiry using the Laya System 1 decision model (https://brainfunctioncollapse.com/laya). Categorizes legal domain, urgency, and deadline risk with calibrated probabilities in ~20ms.")
+def triage_mandate(text: str, state: str = "BY") -> str:
+    """Triage incoming legal inquiry. text: raw mandate email or inquiry. state: German state code (e.g. 'BY')."""
+    res = LegalEngine.triage_mandate(text, state=state)
+    return json.dumps(res, ensure_ascii=False, indent=2)
+
 @server.tool(description="Prepare an executive, citation-grounded legal context dossier for drafting court pleadings or legal briefs without hallucinations or dashes.")
 def prepare_pleading_dossier(norms: List[List[str]], query: str) -> str:
     """Prepare legal dossier. norms: list of [law, section] pairs e.g. [['BGB', '823'], ['BGB', '249']]. query: case law search query."""

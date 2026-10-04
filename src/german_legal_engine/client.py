@@ -11,6 +11,7 @@ from .case_law import search_case_law, get_decision_text
 from .deadlines import calculate_deadline
 from .subsumption import analyze_subsumption
 from .sanitizer import sanitize_zero_dashes, anonymize_legal_text
+from .triage import LegalTriage
 
 class LegalEngine:
     """
@@ -56,6 +57,14 @@ class LegalEngine:
     def anonymize_text(text: str) -> str:
         """Redact sensitive PII (IBAN, email, phone, addresses) under DSGVO Art. 5."""
         return anonymize_legal_text(text)
+        
+    @staticmethod
+    def triage_mandate(text: str, state: str = "BY", agent: Optional[Any] = None) -> Dict[str, Any]:
+        """
+        Triage and classify an incoming mandate or legal text using the Laya System 1 decision model
+        (https://brainfunctioncollapse.com/laya) or deterministic fallback.
+        """
+        return LegalTriage.triage_mandate(text, state=state, agent=agent)
         
     @classmethod
     def prepare_dossier_context(cls, norms: List[Tuple[str, str]], query: str) -> str:
