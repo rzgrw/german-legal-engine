@@ -117,12 +117,33 @@ def calculate_deadline(
     # 1. Fristbeginn (§ 187 Abs. 1 BGB)
     frist_beginn = ereignis_datum + timedelta(days=1)
     
+    audit_trail: List[Dict[str, Any]] = [
+        {
+            "step": 1,
+            "rule": "§ 187 Abs. 1 BGB",
+            "title": "Ereignisfrist und Fristbeginn",
+            "description": f"Der Tag des auslösenden Ereignisses ({ereignis_datum.strftime('%d.%m.%Y')}) wird bei der Fristberechnung nicht mitgerechnet. Die Frist beginnt am Folgetag ({frist_beginn.strftime('%d.%m.%Y')}) um 00:00 Uhr."
+        }
+    ]
+    
     # 2. Reguläres Fristende (§ 188 BGB)
     unit = dauer_einheit.lower().strip()
     if unit in ["tage", "tag", "days"]:
         regulaeres_ende = ereignis_datum + timedelta(days=dauer_wert)
+        audit_trail.append({
+            "step": 2,
+            "rule": "§ 188 Abs. 1 BGB",
+            "title": "Ablauf der Tagesfrist",
+            "description": f"Die nach Tagen bestimmte Frist ({dauer_wert} Tag(e)) endigt mit Ablauf des letzten Tages ({regulaeres_ende.strftime('%d.%m.%Y')}) um 24:00 Uhr."
+        })
     elif unit in ["wochen", "woche", "weeks"]:
         regulaeres_ende = ereignis_datum + timedelta(weeks=dauer_wert)
+        audit_trail.append({
+            "step": 2,
+            "rule": "§ 188 Abs. 2 Alt. 1 BGB",
+            "title": "Ablauf der Wochenfrist",
+            "description": f"Die nach Wochen bestimmte Frist ({dauer_wert} Woche(n)) endigt mit Ablauf desjenigen Tages der letzten Woche, welcher durch seine Benennung dem Ereignistag entspricht ({regulaeres_ende.strftime('%d.%m.%Y')}) um 24:00 Uhr."
+        })
     elif unit in ["monate", "monat", "months"]:
         # Calculation according to § 188 Abs. 2 and Abs. 3 BGB
         total_months = (ereignis_datum.month - 1) + dauer_wert
@@ -134,11 +155,31 @@ def calculate_deadline(
         # § 188 Abs. 3 BGB: if day doesn't exist, last day of the month
         target_day = min(ereignis_datum.day, days_in_target_month)
         regulaeres_ende = date(target_year, target_month, target_day)
+        if target_day < ereignis_datum.day:
+            audit_trail.append({
+                "step": 2,
+                "rule": "§ 188 Abs. 3 BGB",
+                "title": "Ablauf der Monatsfrist bei fehlendem Kalendertag",
+                "description": f"Fehlt dem Zielmonat der dem Ereignistag entsprechende Tag ({ereignis_datum.day}.), so endigt die Frist mit Ablauf des letzten Tages des Monats ({regulaeres_ende.strftime('%d.%m.%Y')}) um 24:00 Uhr gem. § 188 Abs. 3 BGB."
+            })
+        else:
+            audit_trail.append({
+                "step": 2,
+                "rule": "§ 188 Abs. 2 Alt. 2 BGB",
+                "title": "Ablauf der Monatsfrist",
+                "description": f"Die nach Monaten bestimmte Frist ({dauer_wert} Monat(e)) endigt mit Ablauf desjenigen Tages des letzten Monats, welcher durch seine Zahl dem Ereignistag entspricht ({regulaeres_ende.strftime('%d.%m.%Y')}) um 24:00 Uhr."
+            })
     elif unit in ["jahre", "jahr", "years"]:
         target_year = ereignis_datum.year + dauer_wert
         days_in_target_month = calendar.monthrange(target_year, ereignis_datum.month)[1]
         target_day = min(ereignis_datum.day, days_in_target_month)
         regulaeres_ende = date(target_year, ereignis_datum.month, target_day)
+        audit_trail.append({
+            "step": 2,
+            "rule": "§ 188 Abs. 2 BGB",
+            "title": "Ablauf der Jahresfrist",
+            "description": f"Die nach Jahren bestimmte Frist ({dauer_wert} Jahr(e)) endigt mit Ablauf desjenigen Tages des letzten Jahres, welcher durch seine Zahl und seinen Monat dem Ereignistag entspricht ({regulaeres_ende.strftime('%d.%m.%Y')}) um 24:00 Uhr."
+        })
     else:
         raise ValueError(f"Unknown deadline unit: {dauer_einheit}")
         
@@ -178,6 +219,28 @@ def calculate_deadline(
         
     was_shifted = (endgueltiges_ende != regulaeres_ende)
     
+    if was_shifted:
+        audit_trail.append({
+            "step": 3,
+            "rule": f"§ 193 BGB i.V.m. Feiertagsrecht ({state.upper()})",
+            "title": "Schutzvorschrift bei Wochenenden und Feiertagen",
+            "description": f"Das reguläre Fristende ({regulaeres_ende.strftime('%d.%m.%Y')}) fiel auf einen Samstag, Sonntag oder gesetzlichen Feiertag. Gemäß § 193 BGB verschiebt sich der Ablauf auf den nächsten Werktag ({endgueltiges_ende.strftime('%d.%m.%Y')}, 24:00 Uhr). Festgestellte Hinderungsgründe: {'; '.join(shift_reasons)}."
+        })
+    else:
+        audit_trail.append({
+            "step": 3,
+            "rule": f"§ 193 BGB i.V.m. Feiertagsrecht ({state.upper()})",
+            "title": "Werktagsprüfung",
+            "description": f"Das reguläre Fristende ({regulaeres_ende.strftime('%d.%m.%Y')}) fällt auf einen regulären Werktag in {state.upper()}. Eine Schutzverschiebung nach § 193 BGB ist nicht veranlasst."
+        })
+
+    audit_trail.append({
+        "step": 4,
+        "rule": "Prozessuale Feststellung",
+        "title": "Rechtswirksamer Fristablauf",
+        "description": f"Die Frist läuft endgültig ab am {endgueltiges_ende.strftime('%d.%m.%Y')} um 24:00 Uhr ({'mit Schutzverschiebung gem. § 193 BGB' if was_shifted else 'ohne Schutzverschiebung'})."
+    })
+    
     return {
         "ereignis_datum": ereignis_datum.isoformat(),
         "dauer": f"{dauer_wert} {dauer_einheit}",
@@ -187,5 +250,6 @@ def calculate_deadline(
         "endgueltiges_ende": endgueltiges_ende.isoformat(),
         "shifted_by_193_bgb": was_shifted,
         "shift_reasons": shift_reasons,
+        "audit_trail": audit_trail,
         "citation": f"Fristablauf am {endgueltiges_ende.strftime('%d.%m.%Y')} um 24:00 Uhr gem. §§ 187 Abs. 1, 188 Abs. 2, 193 BGB"
     }

@@ -47,5 +47,30 @@ class TestDeadlines(unittest.TestCase):
         h_sn = get_public_holidays(2026, state="SN")
         self.assertTrue(any("Buß" in name for name in h_sn.values()))
 
+    def test_audit_trail_statutory_derivation(self):
+        # Verify complete step-by-step statutory derivation under §§ 187, 188, 193 BGB
+        res = calculate_deadline(date(2026, 10, 3), 1, "wochen", state="BY")
+        self.assertIn("audit_trail", res)
+        trail = res["audit_trail"]
+        self.assertEqual(len(trail), 4)
+        
+        # Step 1: § 187 Abs. 1 BGB
+        self.assertEqual(trail[0]["step"], 1)
+        self.assertEqual(trail[0]["rule"], "§ 187 Abs. 1 BGB")
+        self.assertIn("Ereignisfrist", trail[0]["title"])
+        
+        # Step 2: § 188 Abs. 2 Alt. 1 BGB
+        self.assertEqual(trail[1]["step"], 2)
+        self.assertIn("§ 188", trail[1]["rule"])
+        
+        # Step 3: § 193 BGB
+        self.assertEqual(trail[2]["step"], 3)
+        self.assertIn("§ 193 BGB", trail[2]["rule"])
+        self.assertIn("Samstag", trail[2]["description"])
+        
+        # Step 4: Final legal determination
+        self.assertEqual(trail[3]["step"], 4)
+        self.assertIn("Rechtswirksamer Fristablauf", trail[3]["title"])
+
 if __name__ == "__main__":
     unittest.main()

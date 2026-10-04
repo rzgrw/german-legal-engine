@@ -89,6 +89,9 @@ gle decision Y-300-Z-BECKRS-B-2021-N-30750
 # Fällt regulär auf Samstag, den 10.10. -> automatische Verschiebung auf Montag, den 12.10.2026!
 gle deadline 2026-10-03 1 wochen --state BY
 
+# Mit lückenlosem gesetzlichem Audit-Trail (Schritt-für-Schritt Herleitung gem. §§ 187, 188, 193 BGB):
+gle deadline 2026-10-03 1 wochen --state BY --audit
+
 # 5. Tatbestandsmerkmale und Beweislast analysieren
 gle subsume BGB 280
 ```
@@ -145,10 +148,22 @@ Die Engine stellt einen standardkonformen MCP-Server bereit, der sich nahtlos in
 * `get_norm(law, section)`: Liefert den amtlichen Volltext der gesuchten Rechtsnorm (Bund und Länder).
 * `search_precedents(query, limit, court, source)`: Durchsucht amtliche Entscheidungen von Bundesgerichten (BGH, BAG, BVerfG) und bayerischen Gerichten (gesetze-bayern.de).
 * `get_decision(doc_id)`: Ruft die amtliche Volltext-Entscheidung mit Randnummern ab.
-* `compute_deadline(ereignis_datum, dauer_wert, dauer_einheit, state)`: Mathematisch exakte Fristenberechnung gem. §§ 187-193 BGB mit Feiertagskontrolle aller 16 Bundesländer.
+* `compute_deadline(ereignis_datum, dauer_wert, dauer_einheit, state)`: Mathematisch exakte Fristenberechnung gem. §§ 187-193 BGB mit Feiertagskontrolle aller 16 Bundesländer und lückenlosem gesetzlichem Audit-Trail.
 * `get_subsumption_blueprint(law, section)`: Liefert strukturierte Tatbestandsmerkmale mit zugehöriger Darlegungs- und Beweislast (Arbeitshilfe, kein amtlicher Text).
 * `anonymize_text(text)`: Schwärzt sensible personenbezogene Daten (IBAN, E-Mail, Telefon, Anschriften) gem. Art. 5 DSGVO.
 * `prepare_pleading_dossier(norms, query)`: Erzeugt einen fertigen, zitatgesicherten Rechercheblock für Klageschriften und Schriftsätze.
+
+---
+
+### 4. Dual-System-Architektur für Kanzleiprozesse (System 1 + System 2)
+
+In der anwaltlichen Praxis scheitern reine LLM-Lösungen oft daran, dass sie prozessuale Regeln und Fristen nur „statistisch erraten“. Die German Legal Engine realisiert ein praxiserprobtes hybrides **Dual-System-Pattern**:
+
+* **System 1 (LLM / Semantischer Agent):** Liest unstrukturierte Mandantenschreiben, Schriftsätze oder E-Mails, erkennt den Sachverhalt und formuliert Entwürfe.
+* **System 2 (German Legal Engine):** Agiert als deterministischer Ground-Truth-Layer. Berechnet Fristen mathematisch exakt, prüft authentische Normtexte, liefert zitierfähige Randnummern, liefert einen nachprüfbaren Audit-Trail und schwärzt PII lokal vor der Weitergabe (DSGVO Art. 5).
+
+Ein vollständiges, lauffähiges Beispiel für diesen Kanzlei-Workflow findet sich unter:  
+[`examples/04_dual_system_kanzlei_pipeline.py`](examples/04_dual_system_kanzlei_pipeline.py)
 
 ---
 

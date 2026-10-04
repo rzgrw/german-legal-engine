@@ -39,6 +39,7 @@ def main():
     dl_p.add_argument("value", type=int, help="Duration value (e.g. 2, 3)")
     dl_p.add_argument("unit", choices=["tage", "tag", "wochen", "woche", "monate", "monat", "jahre", "jahr"], help="Duration unit")
     dl_p.add_argument("--state", default="BY", help="German state code for public holidays (default: BY)")
+    dl_p.add_argument("--audit", action="store_true", help="Print step-by-step statutory derivation and audit trail")
     
     # subsumption
     sub_p = subparsers.add_parser("subsume", help="Get legal subsumption blueprint (Tatbestandsmerkmale)")
@@ -87,15 +88,21 @@ def main():
             d = date.fromisoformat(args.date)
             res = LegalEngine.compute_deadline(d, args.value, args.unit, args.state)
             print(f"\n=== Fristenberechnung gem. §§ 187-193 BGB ({args.state}) ===")
-            print(f"Ereignisdatum:     {res['ereignis_datum']}")
-            print(f"Fristbeginn:       {res['frist_beginn']} (00:00 Uhr)")
+            print(f"Ereignisdatum:       {res['ereignis_datum']}")
+            print(f"Fristbeginn:         {res['frist_beginn']} (00:00 Uhr)")
             print(f"Reguläres Fristende: {res['regulaeres_ende']}")
             print(f"Endgültiges Fristende: {res['endgueltiges_ende']} (24:00 Uhr)")
             if res['shifted_by_193_bgb']:
-                print(f"Verschiebung:      JA gem. § 193 BGB")
+                print(f"Verschiebung:        JA gem. § 193 BGB")
                 for s in res['shift_reasons']:
                     print(f"  - {s}")
             print(f"\n{res['citation']}\n")
+            if args.audit and "audit_trail" in res:
+                print("--- Gesetzlicher Audit-Trail (Schritt-für-Schritt Herleitung) ---")
+                for step in res["audit_trail"]:
+                    print(f"  {step['step']}. [{step['rule']}] {step['title']}")
+                    print(f"     {step['description']}")
+                print()
         except Exception as e:
             print("Error calculating deadline:", e)
             
